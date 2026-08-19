@@ -1,0 +1,32 @@
+# Phase 1: Data pipeline + EDA
+pandas>=2.0
+numpy>=1.24
+matplotlib>=3.7
+seaborn>=0.12
+pyarrow>=14.0
+jupyter>=1.0
+
+# Phase 2: Anomaly detection
+scikit-learn>=1.3
+joblib>=1.3
+
+# Phase 3: Attack classification + SHAP + threat scoring
+xgboost>=2.0
+shap>=0.44
+
+# Phase 4: UBA + Attack graph + Forecasting
+networkx>=3.1
+
+# Phase 5: Backend — FastAPI + PostgreSQL + Redis
+fastapi>=0.110
+uvicorn[standard]>=0.27
+sqlalchemy>=2.0
+psycopg2-binary>=2.9      # PostgreSQL driver (SQLite needs no driver — built into Python)
+redis>=5.0
+pydantic>=2.0
+python-dotenv>=1.0
+
+# Testing / CI
+pytest>=8.0
+ruff>=0.4
+httpx>=0.27                # required by FastAPI's TestClient

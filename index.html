@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ThreatLens AI — Cyber Threat Intelligence Platform</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="app">
+
+  <!-- ================= SIDEBAR ================= -->
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-mark"><i data-lucide="shield-half"></i></div>
+      <div class="brand-text">
+        <span class="brand-name">ThreatLens<span class="accent">AI</span></span>
+        <span class="brand-tag">See Threats. Stop Tomorrow.</span>
+      </div>
+    </div>
+
+    <nav class="nav">
+      <div class="nav-group-label">Monitor</div>
+      <button class="nav-item active" data-page="dashboard"><i data-lucide="layout-dashboard"></i><span>Dashboard</span></button>
+      <button class="nav-item" data-page="realtime"><i data-lucide="activity"></i><span>Real-time Monitor</span></button>
+      <button class="nav-item" data-page="analytics"><i data-lucide="bar-chart-3"></i><span>Attack Analytics</span></button>
+      <button class="nav-item" data-page="uba"><i data-lucide="user-search"></i><span>User Behavior</span></button>
+
+      <div class="nav-group-label">Intelligence</div>
+      <button class="nav-item" data-page="forecast"><i data-lucide="trending-up"></i><span>Threat Forecast</span></button>
+      <button class="nav-item" data-page="graph"><i data-lucide="git-branch"></i><span>Attack Graph</span></button>
+      <button class="nav-item" data-page="shap"><i data-lucide="brain-circuit"></i><span>SHAP Explainability</span></button>
+      <button class="nav-item" data-page="analyst"><i data-lucide="bot"></i><span>AI Security Analyst</span></button>
+
+      <div class="nav-group-label">Operations</div>
+      <button class="nav-item" data-page="alerts"><i data-lucide="siren"></i><span>Alerts &amp; Incidents</span></button>
+      <button class="nav-item" data-page="reports"><i data-lucide="file-text"></i><span>Reports</span></button>
+      <button class="nav-item" data-page="health"><i data-lucide="heart-pulse"></i><span>System Health</span></button>
+      <button class="nav-item" data-page="settings"><i data-lucide="settings"></i><span>Settings</span></button>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="status-card">
+        <div class="status-title"><i data-lucide="shield-check"></i> All Systems Operational</div>
+        <div class="status-sub">Defend · Detect · Predict</div>
+      </div>
+      <div class="user-card">
+        <div class="user-avatar">KA</div>
+        <div class="user-meta">
+          <span class="user-name">Kinza Arshad</span>
+          <span class="user-role">Security Analyst</span>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ================= MAIN ================= -->
+  <main class="main">
+
+    <!-- TOP BAR -->
+    <header class="topbar">
+      <div class="search-wrap">
+        <div class="search-box">
+          <i data-lucide="search"></i>
+          <input type="text" id="globalSearchInput" placeholder="Search IP, user, device, or threat…" autocomplete="off">
+          <kbd>Ctrl K</kbd>
+        </div>
+        <div class="dropdown-panel" id="searchResults"></div>
+      </div>
+      <div class="topbar-right">
+        <div class="live-pill"><span class="dot pulse"></span> LIVE</div>
+        <div class="clock" id="clock">--:--:--</div>
+        <div class="icon-btn-wrap">
+          <button class="icon-btn" id="notifBtn"><i data-lucide="bell"></i><span class="badge">15</span></button>
+          <div class="dropdown-panel right" id="notifPanel"></div>
+        </div>
+        <button class="icon-btn" id="topSettingsBtn"><i data-lucide="settings"></i></button>
+      </div>
+    </header>
+
+    <!-- ============ PAGE: DASHBOARD ============ -->
+    <section class="page active" id="page-dashboard">
+
+      <div class="page-head">
+        <div>
+          <h1>Threat Overview</h1>
+          <p>Real-time posture of your security ecosystem</p>
+        </div>
+        <div class="range-select-wrap">
+          <button class="range-select" id="rangeSelectBtn">Last 24 Hours <i data-lucide="chevron-down"></i></button>
+          <div class="dropdown-panel right" id="rangeMenu">
+            <button class="dropdown-item" data-range="Last 1 Hour">Last 1 Hour</button>
+            <button class="dropdown-item" data-range="Last 6 Hours">Last 6 Hours</button>
+            <button class="dropdown-item" data-range="Last 24 Hours">Last 24 Hours</button>
+            <button class="dropdown-item" data-range="Last 48 Hours">Last 48 Hours</button>
+            <button class="dropdown-item" data-range="Last 7 Days">Last 7 Days</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- KPI ROW -->
+      <div class="kpi-row">
+        <div class="kpi-card">
+          <div class="kpi-icon green"><i data-lucide="activity"></i></div>
+          <div class="kpi-body">
+            <span class="kpi-label">Total Events</span>
+            <span class="kpi-value" data-count="1248532">0</span>
+            <span class="kpi-delta up">▲ 12.4% vs last 24h</span>
+          </div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-icon red"><i data-lucide="shield-alert"></i></div>
+          <div class="kpi-body">
+            <span class="kpi-label">Active Threats</span>
+            <span class="kpi-value" data-count="328">0</span>
+            <span class="kpi-delta up">▲ 8.2% vs last 24h</span>
+          </div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-icon orange"><i data-lucide="triangle-alert"></i></div>
+          <div class="kpi-body">
+            <span class="kpi-label">Critical Alerts</span>
+            <span class="kpi-value" data-count="27">0</span>
+            <span class="kpi-delta up critical">▲ 27.1% vs last 24h</span>
+          </div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-icon blue"><i data-lucide="gauge"></i></div>
+          <div class="kpi-body">
+            <span class="kpi-label">System Health</span>
+            <span class="kpi-value">99.8<small>%</small></span>
+            <span class="kpi-delta neutral">All systems operational</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- GLOBE + LIVE FEED ROW -->
+      <div class="grid-2">
+        <div class="panel globe-panel">
+          <div class="panel-head">
+            <h3><i data-lucide="globe"></i> Global Threat Map</h3>
+            <span class="tag live"><span class="dot pulse"></span> Live</span>
+          </div>
+          <div class="globe-wrap">
+            <canvas id="globeCanvas"></canvas>
+            <div class="globe-stats">
+              <div><strong id="statIPs">102</strong><span>Unique IPs</span></div>
+              <div><strong id="statCountries">28</strong><span>Countries</span></div>
+              <div><strong id="statUsers">532</strong><span>Active Users</span></div>
+            </div>
+          </div>
+          <div class="legend">
+            <span><i class="dot" style="background:#ff4d5a"></i>Brute Force</span>
+            <span><i class="dot" style="background:#ffb020"></i>DDoS</span>
+            <span><i class="dot" style="background:#00ffa3"></i>Web Attack</span>
+            <span><i class="dot" style="background:#3aa0ff"></i>Port Scan</span>
+            <span><i class="dot" style="background:#b06bff"></i>Cred. Stuffing</span>
+          </div>
+        </div>
+
+        <div class="panel feed-panel">
+          <div class="panel-head">
+            <h3><i data-lucide="radio"></i> Live Threat Activity</h3>
+            <a class="link" id="viewAllLiveFeed" data-goto="realtime">View All →</a>
+          </div>
+          <table class="feed-table">
+            <thead>
+              <tr><th>Time</th><th>Event</th><th>Source IP</th><th>User</th><th>Risk</th><th>Status</th></tr>
+            </thead>
+            <tbody id="feedBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- FORECAST / ATTACK DIST / UBA ROW -->
+      <div class="grid-3">
+        <div class="panel">
+          <div class="panel-head"><h3><i data-lucide="trending-up"></i> Threat Forecast</h3></div>
+          <div class="forecast-bars">
+            <div class="fbar"><span class="fval">71%</span><div class="ftrack"><div class="ffill" style="--h:71%"></div></div><span class="flabel">1 Hour</span></div>
+            <div class="fbar"><span class="fval">83%</span><div class="ftrack"><div class="ffill" style="--h:83%"></div></div><span class="flabel">6 Hours</span></div>
+            <div class="fbar"><span class="fval">89%</span><div class="ftrack"><div class="ffill" style="--h:89%"></div></div><span class="flabel">24 Hours</span></div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-head"><h3><i data-lucide="pie-chart"></i> Attack Distribution</h3></div>
+          <div class="donut-wrap">
+            <canvas id="attackDonut"></canvas>
+            <div class="donut-center"><strong>328</strong><span>Total</span></div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-head"><h3><i data-lucide="user-round" ></i> User Behavior Snapshot</h3></div>
+          <div class="uba-mini">
+            <div class="uba-user"><span class="uid">U-1042</span><span class="tagpill unusual">UNUSUAL</span></div>
+            <div class="uba-risk"><strong>87%</strong> Risk Score</div>
+            <ul class="uba-list">
+              <li><span>Normal Hours</span><b>09:00 – 18:00</b></li>
+              <li><span>Current Activity</span><b class="warn">03:14 AM (Off-hours)</b></li>
+              <li><span>Typical OS</span><b>Windows</b></li>
+              <li><span>Current OS</span><b class="warn">Linux (New)</b></li>
+              <li><span>Known IP</span><b class="warn">192.168.1.105 (New)</b></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- SHAP + ANALYST ROW -->
+      <div class="grid-2">
+        <div class="panel">
+          <div class="panel-head"><h3><i data-lucide="brain-circuit"></i> SHAP Explainability</h3><span class="tag critical">Threat Score 91%</span></div>
+          <div class="shap-list">
+            <div class="shap-row"><span>Failed Login Count</span><div class="shap-track"><div class="shap-fill" style="--w:82%"></div></div><b>+32%</b></div>
+            <div class="shap-row"><span>Request Frequency</span><div class="shap-track"><div class="shap-fill" style="--w:64%"></div></div><b>+24%</b></div>
+            <div class="shap-row"><span>New IP Address</span><div class="shap-track"><div class="shap-fill" style="--w:48%"></div></div><b>+18%</b></div>
+            <div class="shap-row"><span>Unusual Login Time</span><div class="shap-track"><div class="shap-fill" style="--w:30%"></div></div><b>+11%</b></div>
+            <div class="shap-row"><span>Device Signature</span><div class="shap-track"><div class="shap-fill" style="--w:16%"></div></div><b>+6%</b></div>
+          </div>
+        </div>
+
+        <div class="panel analyst-panel">
+          <div class="panel-head"><h3><i data-lucide="bot"></i> AI Security Analyst</h3><span class="tag live"><span class="dot pulse"></span> Online</span></div>
+          <div class="chat-window" id="chatWindow">
+            <div class="chat-msg user"><p>What caused the increase in suspicious activity today?</p></div>
+            <div class="chat-msg bot"><p>Suspicious activity increased ~34%, mainly due to repeated authentication failures from 12 previously unseen IP addresses targeting the <code>/api/v1/auth</code> endpoint.</p></div>
+          </div>
+          <form class="chat-input" id="chatForm">
+            <input type="text" id="chatInput" placeholder="Ask anything about your security data…">
+            <button type="submit"><i data-lucide="send"></i></button>
+          </form>
+        </div>
+      </div>
+
+      <!-- CRITICAL ALERTS -->
+      <div class="panel">
+        <div class="panel-head"><h3><i data-lucide="siren"></i> Recent Critical Alerts</h3><a class="link" id="viewAllAlerts" data-goto="alerts">View All →</a></div>
+        <table class="feed-table">
+          <thead><tr><th>Time</th><th>Type</th><th>Source IP</th><th>Target</th><th>Risk</th><th>Status</th></tr></thead>
+          <tbody>
+            <tr><td>03:14:15</td><td>Brute Force</td><td class="mono">192.168.1.105</td><td>U-1042</td><td class="risk crit">94%</td><td><span class="status-pill crit">Critical</span></td></tr>
+            <tr><td>03:13:41</td><td>DDoS</td><td class="mono">198.51.100.23</td><td>/api/login</td><td class="risk crit">92%</td><td><span class="status-pill crit">Critical</span></td></tr>
+            <tr><td>03:12:31</td><td>Web Attack</td><td class="mono">185.199.108.55</td><td>server-7</td><td class="risk high">89%</td><td><span class="status-pill high">High</span></td></tr>
+            <tr><td>03:11:09</td><td>Credential Stuffing</td><td class="mono">203.0.113.45</td><td>U-8821</td><td class="risk high">87%</td><td><span class="status-pill high">High</span></td></tr>
+            <tr><td>03:10:18</td><td>Brute Force</td><td class="mono">198.51.100.32</td><td>U-3091</td><td class="risk high">85%</td><td><span class="status-pill high">High</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+    </section>
+
+    <!-- ============ PAGE: REAL-TIME MONITOR ============ -->
+    <section class="page" id="page-realtime">
+      <div class="page-head"><div><h1>Real-time Monitor</h1><p>Streaming security events as they happen</p></div></div>
+      <div class="panel">
+        <div class="panel-head"><h3><i data-lucide="radio"></i> Real-time Event Stream</h3><span class="tag live"><span class="dot pulse"></span> Live · <span id="eps">1,204</span> events/sec</span></div>
+        <table class="feed-table"><thead><tr><th>Time</th><th>Event Type</th><th>User</th><th>Source IP</th><th>Location</th><th>Status</th><th>Risk</th></tr></thead>
+          <tbody id="realtimeBody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ============ PAGE: ATTACK ANALYTICS ============ -->
+    <section class="page" id="page-analytics">
+      <div class="page-head"><div><h1>Attack Analytics</h1><p>Classification trends across attack categories</p></div></div>
+      <div class="grid-2">
+        <div class="panel"><div class="panel-head"><h3>Attack Volume — 7 Day Trend</h3></div><div class="chart-box"><canvas id="trendChart"></canvas></div></div>
+        <div class="panel"><div class="panel-head"><h3>Attack Class Distribution</h3></div><div class="chart-box"><canvas id="classChart"></canvas></div></div>
+      </div>
+      <div class="panel">
+        <div class="panel-head"><h3>Top Attacking IPs</h3></div>
+        <table class="feed-table"><thead><tr><th>IP Address</th><th>Country</th><th>Attacks</th><th>Primary Type</th><th>Risk</th></tr></thead>
+          <tbody>
+            <tr><td class="mono">192.168.1.105</td><td>Pakistan</td><td>187</td><td>Brute Force</td><td class="risk crit">94%</td></tr>
+            <tr><td class="mono">185.199.108.55</td><td>Germany</td><td>142</td><td>Web Attack</td><td class="risk high">89%</td></tr>
+            <tr><td class="mono">203.0.113.45</td><td>USA</td><td>98</td><td>Credential Stuffing</td><td class="risk high">87%</td></tr>
+            <tr><td class="mono">198.51.100.23</td><td>Russia</td><td>76</td><td>DDoS</td><td class="risk med">82%</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ============ PAGE: USER BEHAVIOR ============ -->
+    <section class="page" id="page-uba">
+      <div class="page-head"><div><h1>User Behavior Analytics</h1><p>Baseline vs. current behavior deviation profiling</p></div></div>
+      <div class="grid-2">
+        <div class="panel">
+          <div class="panel-head"><h3>Profile — U-1042</h3><span class="tagpill unusual">UNUSUAL</span></div>
+          <div class="chart-box"><canvas id="ubaChart"></canvas></div>
+        </div>
+        <div class="panel">
+          <div class="panel-head"><h3>Baseline vs. Current</h3></div>
+          <ul class="uba-list big">
+            <li><span>Normal Hours</span><b>09:00 AM – 06:00 PM</b></li>
+            <li><span>Current Activity</span><b class="warn">03:14 AM (Off-hours)</b></li>
+            <li><span>Typical OS</span><b>Windows</b></li>
+            <li><span>Current OS</span><b class="warn">Linux (New)</b></li>
+            <li><span>Typical Browser</span><b>Chrome</b></li>
+            <li><span>Current Browser</span><b class="warn">Firefox (New)</b></li>
+            <li><span>Typical IP</span><b>10.0.0.15</b></li>
+            <li><span>Current IP</span><b class="warn">192.168.1.105 (New)</b></li>
+            <li><span>Avg. Daily Logins</span><b>12</b></li>
+            <li><span>Avg. Requests/Day</span><b>1,248</b></li>
+          </ul>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="panel-head"><h3>Top Attacked / At-Risk Users</h3></div>
+        <table class="feed-table"><thead><tr><th>User ID</th><th>Risk Score</th><th>Trend</th><th>Status</th></tr></thead>
+          <tbody>
+            <tr><td>U-1042</td><td class="risk crit">87%</td><td>↗ rising</td><td><span class="status-pill crit">Unusual</span></td></tr>
+            <tr><td>U-8821</td><td class="risk high">62%</td><td>↗ rising</td><td><span class="status-pill high">Unusual</span></td></tr>
+            <tr><td>U-3091</td><td class="risk med">55%</td><td>→ stable</td><td><span class="status-pill med">Watch</span></td></tr>
+            <tr><td>U-2115</td><td class="risk low">38%</td><td>↘ falling</td><td><span class="status-pill low">Normal</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ============ PAGE: THREAT FORECAST ============ -->
+    <section class="page" id="page-forecast">
+      <div class="page-head"><div><h1>Threat Forecast</h1><p>Predicted threat probability across time horizons</p></div></div>
+      <div class="panel"><div class="panel-head"><h3>Threat Probability Curve</h3></div><div class="chart-box tall"><canvas id="forecastChart"></canvas></div></div>
+      <div class="kpi-row">
+        <div class="kpi-card"><div class="kpi-icon green"><i data-lucide="clock"></i></div><div class="kpi-body"><span class="kpi-label">Next 1 Hour</span><span class="kpi-value">71<small>%</small></span><span class="kpi-delta neutral">Immediate readiness</span></div></div>
+        <div class="kpi-card"><div class="kpi-icon orange"><i data-lucide="clock"></i></div><div class="kpi-body"><span class="kpi-label">Next 6 Hours</span><span class="kpi-value">83<small>%</small></span><span class="kpi-delta neutral">Near-term planning</span></div></div>
+        <div class="kpi-card"><div class="kpi-icon red"><i data-lucide="clock"></i></div><div class="kpi-body"><span class="kpi-label">Next 24 Hours</span><span class="kpi-value">89<small>%</small></span><span class="kpi-delta neutral">Daily threat posture</span></div></div>
+      </div>
+    </section>
+
+    <!-- ============ PAGE: ATTACK GRAPH ============ -->
+    <section class="page" id="page-graph">
+      <div class="page-head"><div><h1>Attack Relationship Graph</h1><p>Entity relationships across IPs, users, devices &amp; sessions</p></div></div>
+      <div class="panel">
+        <div class="panel-head"><h3>Network — 192.168.1.105</h3></div>
+        <div class="graph-wrap"><canvas id="graphCanvas"></canvas></div>
+      </div>
+    </section>
+
+    <!-- ============ PAGE: SHAP ============ -->
+    <section class="page" id="page-shap">
+      <div class="page-head"><div><h1>SHAP Explainability</h1><p>Feature contributions behind the current prediction</p></div></div>
+      <div class="panel">
+        <div class="panel-head"><h3>Prediction: Brute Force Attack</h3><span class="tag critical">Threat Score 91% · High Risk</span></div>
+        <div class="shap-list big">
+          <div class="shap-row"><span>Failed Login Count</span><div class="shap-track"><div class="shap-fill" style="--w:82%"></div></div><b>+32%</b></div>
+          <div class="shap-row"><span>Request Frequency</span><div class="shap-track"><div class="shap-fill" style="--w:64%"></div></div><b>+24%</b></div>
+          <div class="shap-row"><span>New IP Address</span><div class="shap-track"><div class="shap-fill" style="--w:48%"></div></div><b>+18%</b></div>
+          <div class="shap-row"><span>Unusual Login Time</span><div class="shap-track"><div class="shap-fill" style="--w:30%"></div></div><b>+11%</b></div>
+          <div class="shap-row"><span>Device Signature</span><div class="shap-track"><div class="shap-fill" style="--w:16%"></div></div><b>+6%</b></div>
+          <div class="shap-row"><span>Error Rate</span><div class="shap-track"><div class="shap-fill" style="--w:10%"></div></div><b>+3%</b></div>
+          <div class="shap-row"><span>Geolocation Change</span><div class="shap-track"><div class="shap-fill" style="--w:5%"></div></div><b>+1%</b></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ PAGE: AI ANALYST (full) ============ -->
+    <section class="page" id="page-analyst">
+      <div class="page-head"><div><h1>AI Security Analyst</h1><p>Evidence-based answers, not black-box chat</p></div></div>
+      <div class="panel analyst-panel tall">
+        <div class="chat-window" id="chatWindowFull">
+          <div class="chat-msg user"><p>Which users require immediate investigation?</p></div>
+          <div class="chat-msg bot"><p>3 users exceed the risk threshold this hour: <b>U-1042</b> (87%, off-hours login from a new device), <b>U-8821</b> (62%, unseen IP), and <b>U-3091</b> (55%, unusual request volume). Recommend starting with U-1042.</p></div>
+        </div>
+        <form class="chat-input" id="chatFormFull">
+          <input type="text" id="chatInputFull" placeholder="Ask anything about your security data…">
+          <button type="submit"><i data-lucide="send"></i></button>
+        </form>
+      </div>
+    </section>
+
+    <!-- ============ PAGE: ALERTS ============ -->
+    <section class="page" id="page-alerts">
+      <div class="page-head"><div><h1>Alerts &amp; Incidents</h1><p>Investigation queue and response workflow</p></div></div>
+      <div class="panel">
+        <table class="feed-table"><thead><tr><th>Alert ID</th><th>Type</th><th>Source IP</th><th>Target</th><th>Risk</th><th>Status</th><th>Actions</th></tr></thead>
+          <tbody>
+            <tr><td>ALRT-00178</td><td>Brute Force</td><td class="mono">192.168.1.105</td><td>U-1042</td><td class="risk crit">94%</td><td><span class="status-pill crit">Critical</span></td><td><button class="mini-btn">Investigate</button></td></tr>
+            <tr><td>ALRT-00177</td><td>DDoS</td><td class="mono">198.51.100.23</td><td>API Gateway</td><td class="risk crit">92%</td><td><span class="status-pill crit">Critical</span></td><td><button class="mini-btn">Investigate</button></td></tr>
+            <tr><td>ALRT-00176</td><td>Web Attack</td><td class="mono">185.199.108.55</td><td>server-7</td><td class="risk high">89%</td><td><span class="status-pill high">High</span></td><td><button class="mini-btn">Investigate</button></td></tr>
+            <tr><td>ALRT-00175</td><td>Port Scanning</td><td class="mono">203.0.113.45</td><td>Firewall</td><td class="risk med">76%</td><td><span class="status-pill med">Monitoring</span></td><td><button class="mini-btn">Investigate</button></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ============ PAGE: REPORTS ============ -->
+    <section class="page" id="page-reports">
+      <div class="page-head"><div><h1>Reports</h1><p>Generate and export security summaries</p></div></div>
+      <div class="report-grid">
+        <div class="report-card"><i data-lucide="file-bar-chart-2"></i><h4>Executive Summary</h4><p>High-level posture overview for stakeholders.</p><button class="mini-btn">Generate</button></div>
+        <div class="report-card"><i data-lucide="trending-up"></i><h4>Threat Trends</h4><p>Weekly attack pattern &amp; forecast report.</p><button class="mini-btn">Generate</button></div>
+        <div class="report-card"><i data-lucide="users"></i><h4>Top Risky Users</h4><p>UBA-ranked user risk breakdown.</p><button class="mini-btn">Generate</button></div>
+        <div class="report-card"><i data-lucide="file-warning"></i><h4>Incident Report</h4><p>Full evidence trail for a selected alert.</p><button class="mini-btn">Generate</button></div>
+      </div>
+    </section>
+
+    <!-- ============ PAGE: SYSTEM HEALTH ============ -->
+    <section class="page" id="page-health">
+      <div class="page-head"><div><h1>System Health</h1><p>Pipeline, API, database, model &amp; stream status</p></div></div>
+      <div class="health-grid">
+        <div class="health-card ok"><i data-lucide="database"></i><span>Data Ingestion</span><b>1,200 events/sec</b></div>
+        <div class="health-card ok"><i data-lucide="brain"></i><span>ML Inference</span><b>85 ms</b></div>
+        <div class="health-card ok"><i data-lucide="server"></i><span>API Latency</span><b>112 ms</b></div>
+        <div class="health-card ok"><i data-lucide="hard-drive"></i><span>PostgreSQL</span><b>Healthy</b></div>
+        <div class="health-card ok"><i data-lucide="waves"></i><span>Kafka Stream</span><b>Active</b></div>
+        <div class="health-card ok"><i data-lucide="zap"></i><span>Redis Cache</span><b>Active</b></div>
+      </div>
+    </section>
+
+    <!-- ============ PAGE: SETTINGS ============ -->
+    <section class="page" id="page-settings">
+      <div class="page-head"><div><h1>Settings</h1><p>Thresholds, refresh rate &amp; alert preferences</p></div></div>
+      <div class="panel settings-panel">
+        <div class="setting-row"><span>Critical risk threshold</span><input type="range" min="0" max="100" value="90"></div>
+        <div class="setting-row"><span>Dashboard refresh interval</span><input type="range" min="1" max="30" value="5"></div>
+        <div class="setting-row"><span>Email alerts for critical incidents</span><label class="switch"><input type="checkbox" checked><span class="slider"></span></label></div>
+        <div class="setting-row"><span>Auto-block high-confidence brute force</span><label class="switch"><input type="checkbox"><span class="slider"></span></label></div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>

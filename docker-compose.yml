@@ -1,0 +1,67 @@
+# ThreatLens AI — full local stack (blueprint Section 12).
+#
+# Brings up everything the API needs to run for real: PostgreSQL, Redis,
+# and the FastAPI service itself, all networked together. The dashboard
+# frontend is intentionally NOT included here — it's a static site (see
+# /threatlens frontend files) meant to be opened directly or deployed
+# separately (e.g. Vercel), and it talks to this API over HTTP using the
+# API_BASE_URL you'd configure in the frontend once it's wired up for real
+# data instead of the current simulated demo data.
+#
+# Usage:
+#   docker compose up --build
+#   API available at http://localhost:8000  (docs at /docs)
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: threatlens_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: threatlens
+      POSTGRES_USER: threatlens
+      POSTGRES_PASSWORD: threatlens_dev_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U threatlens"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: threatlens_redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: threatlens_api
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://threatlens:threatlens_dev_password@postgres:5432/threatlens
+      REDIS_URL: redis://redis:6379/0
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./data:/app/data
+      - ./models:/app/models
+
+volumes:
+  postgres_data:
