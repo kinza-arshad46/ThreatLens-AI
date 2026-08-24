@@ -651,3 +651,170 @@ document.querySelectorAll('[data-goto]').forEach(el=>{
     switchToPage(el.dataset.goto);
   });
 });
+
+/* ================= UPLOAD DATA PAGE ================= */
+// This is the one part of the dashboard that talks to a REAL backend
+// instead of simulated data — company-uploaded files genuinely need to be
+// analyzed for real. Point this at wherever your API actually runs.
+// Using 127.0.0.1 instead of "localhost" avoids a common Windows issue:
+// "localhost" can resolve to the IPv6 address (::1) first, and if uvicorn
+// is only listening on IPv4, that connection attempt fails silently even
+// though the server is genuinely running — showing exactly the
+// "couldn't reach the backend" error with no other clue why.
+const API_BASE = 'http://127.0.0.1:8000';
+
+(function setupUploadPage(){
+  const dropzone = document.getElementById('dropzone');
+  const fileInput = document.getElementById('fileInput');
+  const dzFilename = document.getElementById('dzFilename');
+  const sourceNameInput = document.getElementById('uploadSourceName');
+  const analyzeBtn = document.getElementById('analyzeBtn');
+  const uploadError = document.getElementById('uploadError');
+  const resultsPanel = document.getElementById('uploadResultsPanel');
+  const resultsKpis = document.getElementById('uploadResultsKpis');
+  const resultsTable = document.getElementById('uploadResultsTable');
+  const historyBody = document.getElementById('uploadHistoryBody');
+  const successBanner = document.getElementById('uploadSuccessBanner');
+  const successTitle = document.getElementById('uploadSuccessTitle');
+  const successSub = document.getElementById('uploadSuccessSub');
+
+  if(!dropzone || !fileInput) return; // page not present in this build
+
+  let selectedFile = null;
+
+  function setSelectedFile(file){
+    if(!file) return;
+    if(!file.name.toLowerCase().endsWith('.csv')){
+      uploadError.textContent = 'Only .csv files are supported.';
+      return;
+    }
+    selectedFile = file;
+    dzFilename.textContent = `Selected: ${file.name} (${(file.size/1024).toFixed(1)} KB)`;
+    analyzeBtn.disabled = false;
+    uploadError.textContent = '';
+    successBanner.style.display = 'none'; // hide any previous success message for the new file
+  }
+
+  // Note: no click handler needed to open the file picker — the dropzone
+  // is a real <label for="fileInput"> in the HTML, so clicking it opens
+  // the native OS file dialog automatically, guaranteed by the browser
+  // itself, with zero dependency on JavaScript having loaded correctly.
+  // Only drag-and-drop needs JS, wired below.
+  fileInput.addEventListener('change', ()=> setSelectedFile(fileInput.files[0]));
+
+  ['dragenter','dragover'].forEach(evt=>{
+    dropzone.addEventListener(evt, (e)=>{ e.preventDefault(); dropzone.classList.add('dragover'); });
+  });
+  ['dragleave','drop'].forEach(evt=>{
+    dropzone.addEventListener(evt, (e)=>{ e.preventDefault(); dropzone.classList.remove('dragover'); });
+  });
+  dropzone.addEventListener('drop', (e)=>{
+    const file = e.dataTransfer.files[0];
+    setSelectedFile(file);
+  });
+
+  function renderKpi(label, value, iconName){
+    return `
+      <div class="kpi-card">
+        <div class="kpi-icon green"><i data-lucide="${iconName}"></i></div>
+        <div class="kpi-body">
+          <span class="kpi-label">${label}</span>
+          <span class="kpi-value">${value}</span>
+        </div>
+      </div>`;
+  }
+
+  function renderResults(result){
+    // The clear "yes, it worked" confirmation — shown the instant analysis
+    // finishes, before the person has to scroll down and interpret KPI
+    // cards themselves.
+    successBanner.style.display = 'flex';
+    successTitle.textContent = 'Successfully uploaded and analyzed';
+    successSub.textContent =
+      `${result.rows_analyzed.toLocaleString()} of ${result.total_rows.toLocaleString()} rows processed` +
+      (result.rows_dropped_invalid > 0 ? ` · ${result.rows_dropped_invalid} rows skipped (invalid)` : '');
+
+    resultsPanel.style.display = 'block';
+    resultsKpis.innerHTML =
+      renderKpi('Rows Analyzed', result.rows_analyzed.toLocaleString(), 'rows') +
+      renderKpi('Rows Dropped', result.rows_dropped_invalid.toLocaleString(), 'trash-2') +
+      renderKpi('Critical + High', (result.critical_count + result.high_count).toLocaleString(), 'shield-alert') +
+      renderKpi('Avg Threat Score', result.avg_threat_score + '%', 'gauge');
+    if(window.lucide) lucide.createIcons();
+
+    const rows = result.top_alerts || [];
+    if(rows.length === 0){
+      resultsTable.querySelector('thead').innerHTML = '';
+      resultsTable.querySelector('tbody').innerHTML = '<tr><td class="dd-empty">No high-risk rows found in this file.</td></tr>';
+      return;
+    }
+    resultsTable.querySelector('thead').innerHTML =
+      '<tr><th>Attack Category</th><th>Threat Score</th><th>Severity</th></tr>';
+    resultsTable.querySelector('tbody').innerHTML = rows.map(row => {
+      const sevClass = row.severity === 'Critical' ? 'crit' : row.severity === 'High' ? 'high' : row.severity === 'Medium' ? 'med' : 'low';
+      return `<tr>
+        <td>${row.attack_category}</td>
+        <td class="risk ${sevClass}">${row.threat_score}%</td>
+        <td><span class="status-pill ${sevClass}">${row.severity}</span></td>
+      </tr>`;
+    }).join('');
+  }
+
+  async function loadUploadHistory(){
+    try{
+      const res = await fetch(`${API_BASE}/upload/sources`);
+      if(!res.ok) throw new Error('Request failed');
+      const rows = await res.json();
+      if(rows.length === 0){
+        historyBody.innerHTML = '<tr><td colspan="6" class="dd-empty">No uploads yet — analyze a file above to see it here.</td></tr>';
+        return;
+      }
+      historyBody.innerHTML = rows.map(r => `
+        <tr>
+          <td>${r.id}</td>
+          <td>${r.name}</td>
+          <td class="mono">${r.original_filename || '—'}</td>
+          <td>${r.total_rows.toLocaleString()}</td>
+          <td><span class="status-pill ok">Processed</span></td>
+          <td>${new Date(r.uploaded_at).toLocaleString()}</td>
+        </tr>
+      `).join('');
+    } catch(err){
+      historyBody.innerHTML = `<tr><td colspan="6" class="dd-empty">Couldn't reach the backend API at ${API_BASE} — make sure it's running (<code>uvicorn api.main:app</code>).</td></tr>`;
+    }
+  }
+
+  analyzeBtn.addEventListener('click', async ()=>{
+    if(!selectedFile) return;
+    uploadError.textContent = '';
+    analyzeBtn.disabled = true;
+    analyzeBtn.classList.add('loading');
+    analyzeBtn.innerHTML = '<i data-lucide="loader-circle"></i> Analyzing…';
+    if(window.lucide) lucide.createIcons();
+
+    const formData = new FormData();
+    formData.append('file', selectedFile);
+    formData.append('source_name', sourceNameInput.value.trim() || 'Unnamed source');
+
+    try{
+      const res = await fetch(`${API_BASE}/upload/dataset`, { method:'POST', body: formData });
+      const data = await res.json();
+      if(!res.ok){
+        throw new Error(data.detail || 'Analysis failed.');
+      }
+      renderResults(data);
+      loadUploadHistory();
+    } catch(err){
+      uploadError.textContent = err.message.includes('fetch')
+        ? `Couldn't reach the backend API at ${API_BASE} — make sure it's running (uvicorn api.main:app --reload --port 8000).`
+        : err.message;
+    } finally {
+      analyzeBtn.disabled = false;
+      analyzeBtn.classList.remove('loading');
+      analyzeBtn.innerHTML = '<i data-lucide="scan-search"></i> Analyze This File';
+      if(window.lucide) lucide.createIcons();
+    }
+  });
+
+  loadUploadHistory();
+})();

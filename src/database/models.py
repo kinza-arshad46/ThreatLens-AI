@@ -133,9 +133,10 @@ class Alert(Base):
     __tablename__ = "alerts"
 
     id = Column(Integer, primary_key=True)
-    event_id = Column(Integer, ForeignKey("security_events.id"))
+    event_id = Column(Integer, ForeignKey("security_events.id"), nullable=True)
+    source_dataset_id = Column(Integer, ForeignKey("data_sources.id"), nullable=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=True)
-    source_ip = Column(String(45), index=True)
+    source_ip = Column(String(45), index=True, nullable=True)  # nullable: upload-sourced alerts may not carry a raw IP after feature alignment
     attack_category = Column(String(64))
     threat_score = Column(Float)             # 0-100, from src/models/threat_score.py
     severity = Column(String(16), index=True)  # Low / Medium / High / Critical
@@ -144,6 +145,30 @@ class Alert(Base):
     created_at = Column(DateTime, default=datetime.utcnow, index=True)
 
     user = relationship("User", back_populates="alerts")
+
+
+class DataSource(Base):
+    """
+    One row per uploaded company dataset (the "bring your own data" feature).
+    Deliberately does NOT store every individual row from the upload —
+    for a large company export that would bloat the database on every
+    upload. Instead it stores the AGGREGATE analysis (breakdown, average
+    threat score, counts), with the highest-risk rows separately linked
+    via Alert.source_dataset_id for actual investigation.
+    """
+    __tablename__ = "data_sources"
+
+    id = Column(Integer, primary_key=True)
+    name = Column(String(128), index=True)           # e.g. company name or upload label
+    original_filename = Column(String(256), nullable=True)
+    uploaded_at = Column(DateTime, default=datetime.utcnow, index=True)
+    total_rows = Column(Integer, default=0)
+    rows_analyzed = Column(Integer, default=0)
+    rows_dropped_invalid = Column(Integer, default=0)
+    avg_threat_score = Column(Float, default=0.0)
+    critical_count = Column(Integer, default=0)
+    high_count = Column(Integer, default=0)
+    attack_breakdown = Column(JSON, default=dict)     # {"Brute Force": 12, "DDoS": 4, ...}
 
 
 class ModelPrediction(Base):
@@ -161,3 +186,5 @@ class ModelPrediction(Base):
     input_event_id = Column(Integer, ForeignKey("security_events.id"), nullable=True)
     output = Column(JSON)                    # raw prediction payload
     created_at = Column(DateTime, default=datetime.utcnow)
+
+

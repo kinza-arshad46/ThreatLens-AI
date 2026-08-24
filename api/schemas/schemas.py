@@ -107,3 +107,41 @@ class AnalyticsOverview(BaseModel):
     active_threats: int
     critical_alerts: int
     system_health_pct: float
+
+
+class UploadAlertPreview(BaseModel):
+    attack_category: str
+    threat_score: float
+    severity: str
+
+
+class UploadAnalysisOut(BaseModel):
+    source_id: int
+    source_name: str
+    total_rows: int
+    rows_analyzed: int
+    rows_dropped_invalid: int
+    attack_breakdown: dict[str, int]
+    avg_threat_score: float
+    critical_count: int
+    high_count: int
+    top_alerts: list[UploadAlertPreview]
+
+
+class DataSourceOut(BaseModel):
+    id: int
+    name: str
+    original_filename: Optional[str] = None
+    uploaded_at: datetime
+    total_rows: int
+    rows_analyzed: int
+    avg_threat_score: float
+    critical_count: int
+    high_count: int
+    attack_breakdown: dict[str, int]
+
+    class Config:
+        from_attributes = True
+
+
+

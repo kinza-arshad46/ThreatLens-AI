@@ -37,6 +37,9 @@
       <button class="nav-item" data-page="shap"><i data-lucide="brain-circuit"></i><span>SHAP Explainability</span></button>
       <button class="nav-item" data-page="analyst"><i data-lucide="bot"></i><span>AI Security Analyst</span></button>
 
+      <div class="nav-group-label">Data Sources</div>
+      <button class="nav-item" data-page="upload"><i data-lucide="upload-cloud"></i><span>Upload Data</span></button>
+
       <div class="nav-group-label">Operations</div>
       <button class="nav-item" data-page="alerts"><i data-lucide="siren"></i><span>Alerts &amp; Incidents</span></button>
       <button class="nav-item" data-page="reports"><i data-lucide="file-text"></i><span>Reports</span></button>
@@ -372,6 +375,68 @@
           <input type="text" id="chatInputFull" placeholder="Ask anything about your security data…">
           <button type="submit"><i data-lucide="send"></i></button>
         </form>
+      </div>
+    </section>
+
+    <!-- ============ PAGE: UPLOAD DATA ============ -->
+    <section class="page" id="page-upload">
+      <div class="page-head">
+        <div><h1>Upload Data</h1><p>Analyze traffic or log data from any company or source — not just the built-in dataset</p></div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head"><h3><i data-lucide="upload-cloud"></i> New Analysis</h3></div>
+
+        <div class="upload-form">
+          <div class="upload-field">
+            <label for="uploadSourceName">Source / company name</label>
+            <input type="text" id="uploadSourceName" placeholder="e.g. Acme Corp — firewall export">
+          </div>
+
+          <label class="dropzone" id="dropzone" for="fileInput">
+            <input type="file" id="fileInput" accept=".csv" hidden>
+            <div class="dz-icon"><i data-lucide="file-up"></i></div>
+            <p class="dz-title">Drag &amp; drop a CSV file here</p>
+            <p class="dz-or">or</p>
+            <span class="dz-browse-btn"><i data-lucide="folder-open"></i> Browse Files</span>
+            <p class="dz-sub">Any schema works — the analyzer auto-detects numeric traffic/log features. Max 50MB.</p>
+            <p class="dz-filename" id="dzFilename"></p>
+          </label>
+          <p class="upload-hint">
+            <i data-lucide="info"></i>
+            Expected columns (flexible naming accepted): flow duration, packet counts, byte/packet rates, source &amp; destination IP. Any missing column is automatically filled in — nearly any network or security log export will work.
+          </p>
+
+          <button class="mini-btn analyze-btn" id="analyzeBtn" disabled>
+            <i data-lucide="scan-search"></i> Analyze This File
+          </button>
+          <p class="upload-error" id="uploadError"></p>
+        </div>
+      </div>
+
+      <div class="success-banner" id="uploadSuccessBanner" style="display:none;">
+        <div class="success-icon"><i data-lucide="check-circle-2"></i></div>
+        <div class="success-body">
+          <span class="success-title" id="uploadSuccessTitle">Successfully uploaded and analyzed</span>
+          <span class="success-sub" id="uploadSuccessSub"></span>
+        </div>
+      </div>
+
+      <div class="panel" id="uploadResultsPanel" style="display:none;">
+        <div class="panel-head"><h3><i data-lucide="chart-bar"></i> Analysis Results</h3></div>
+        <div class="kpi-row" id="uploadResultsKpis"></div>
+        <div class="panel-head sub-head"><h3><i data-lucide="list-filter"></i> Top Flagged Rows</h3></div>
+        <div class="table-scroll">
+          <table class="feed-table" id="uploadResultsTable"><thead></thead><tbody></tbody></table>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head"><h3><i data-lucide="history"></i> Your Datasets</h3></div>
+        <table class="feed-table">
+          <thead><tr><th>ID</th><th>Source</th><th>Filename</th><th>Rows</th><th>Status</th><th>Uploaded At</th></tr></thead>
+          <tbody id="uploadHistoryBody"><tr><td colspan="6" class="dd-empty">No uploads yet — analyze a file above to see it here.</td></tr></tbody>
+        </table>
       </div>
     </section>
 
