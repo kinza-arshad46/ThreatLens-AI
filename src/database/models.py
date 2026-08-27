@@ -147,6 +147,25 @@ class Alert(Base):
     user = relationship("User", back_populates="alerts")
 
 
+class URLScan(Base):
+    """
+    One row per website/URL scan (the "website link" analysis feature).
+    Separate table from DataSource (file uploads) since a URL scan
+    produces a different shape of result -- a list of individual risk
+    flags rather than row-level dataset statistics.
+    """
+    __tablename__ = "url_scans"
+
+    id = Column(Integer, primary_key=True)
+    url = Column(String(512), index=True)
+    risk_score = Column(Float, default=0.0)
+    severity = Column(String(16), index=True)
+    reachable = Column(Boolean, default=True)
+    flags = Column(JSON, default=list)          # [{"signal": "...", "detail": "...", "weight": 0.2}, ...]
+    error = Column(Text, nullable=True)
+    scanned_at = Column(DateTime, default=datetime.utcnow, index=True)
+
+
 class DataSource(Base):
     """
     One row per uploaded company dataset (the "bring your own data" feature).

@@ -818,3 +818,126 @@ const API_BASE = 'http://127.0.0.1:8000';
 
   loadUploadHistory();
 })();
+
+/* ================= WEBSITE URL SCANNER ================= */
+(function setupUrlScanner(){
+  const tabFileBtn = document.getElementById('tabFileBtn');
+  const tabUrlBtn = document.getElementById('tabUrlBtn');
+  const tabPanelFile = document.getElementById('tabPanelFile');
+  const tabPanelUrl = document.getElementById('tabPanelUrl');
+  if(!tabFileBtn || !tabUrlBtn) return;
+
+  tabFileBtn.addEventListener('click', ()=>{
+    tabFileBtn.classList.add('active'); tabUrlBtn.classList.remove('active');
+    tabPanelFile.style.display = 'block'; tabPanelUrl.style.display = 'none';
+  });
+  tabUrlBtn.addEventListener('click', ()=>{
+    tabUrlBtn.classList.add('active'); tabFileBtn.classList.remove('active');
+    tabPanelUrl.style.display = 'block'; tabPanelFile.style.display = 'none';
+  });
+
+  const urlInput = document.getElementById('urlInput');
+  const scanBtn = document.getElementById('scanUrlBtn');
+  const urlScanError = document.getElementById('urlScanError');
+  const resultsPanel = document.getElementById('urlScanResultsPanel');
+  const urlTag = document.getElementById('urlScanUrlTag');
+  const kpis = document.getElementById('urlScanKpis');
+  const flagList = document.getElementById('urlScanFlagList');
+  const historyBody = document.getElementById('urlScanHistoryBody');
+
+  function renderKpi(label, value, iconName){
+    return `
+      <div class="kpi-card">
+        <div class="kpi-icon green"><i data-lucide="${iconName}"></i></div>
+        <div class="kpi-body">
+          <span class="kpi-label">${label}</span>
+          <span class="kpi-value">${value}</span>
+        </div>
+      </div>`;
+  }
+
+  function severityClass(sev){
+    return sev === 'Critical' ? 'crit' : sev === 'High' ? 'high' : sev === 'Medium' ? 'med' : 'low';
+  }
+
+  function renderScanResult(result){
+    urlTag.textContent = result.url;
+    urlTag.className = `tag ${result.severity === 'Critical' || result.severity === 'High' ? 'critical' : 'live'}`;
+
+    kpis.innerHTML =
+      renderKpi('Risk Score', result.risk_score + '%', 'gauge') +
+      renderKpi('Severity', result.severity, 'shield-alert') +
+      renderKpi('Reachable', result.reachable ? 'Yes' : 'No', result.reachable ? 'check-circle-2' : 'x-circle') +
+      renderKpi('Flags Found', result.flags.length, 'flag');
+    if(window.lucide) lucide.createIcons();
+
+    if(result.flags.length === 0){
+      flagList.innerHTML = '<li class="flag-empty">No risk signals found — this site looks clean on every check performed.</li>';
+    } else {
+      flagList.innerHTML = result.flags.map(f => `
+        <li class="flag-item">
+          <i data-lucide="alert-triangle"></i>
+          <span>${f.detail}</span>
+        </li>
+      `).join('');
+    }
+    if(window.lucide) lucide.createIcons();
+    resultsPanel.style.display = 'block';
+  }
+
+  async function loadScanHistory(){
+    try{
+      const res = await fetch(`${API_BASE}/scan/history`);
+      if(!res.ok) throw new Error('Request failed');
+      const rows = await res.json();
+      if(rows.length === 0){
+        historyBody.innerHTML = '<tr><td colspan="6" class="dd-empty">No scans yet — scan a website above to see it here.</td></tr>';
+        return;
+      }
+      historyBody.innerHTML = rows.map(r => `
+        <tr>
+          <td>${r.id}</td>
+          <td class="mono">${r.url.length > 40 ? r.url.slice(0, 40) + '…' : r.url}</td>
+          <td class="risk ${severityClass(r.severity)}">${r.risk_score}%</td>
+          <td><span class="status-pill ${severityClass(r.severity)}">${r.severity}</span></td>
+          <td>${r.reachable ? 'Yes' : 'No'}</td>
+          <td>${new Date(r.scanned_at).toLocaleString()}</td>
+        </tr>
+      `).join('');
+    } catch(err){
+      historyBody.innerHTML = `<tr><td colspan="6" class="dd-empty">Couldn't reach the backend API at ${API_BASE} — make sure it's running.</td></tr>`;
+    }
+  }
+
+  scanBtn.addEventListener('click', async ()=>{
+    const url = urlInput.value.trim();
+    if(!url){ urlScanError.textContent = 'Please enter a website link first.'; return; }
+    urlScanError.textContent = '';
+    scanBtn.disabled = true;
+    scanBtn.classList.add('loading');
+    scanBtn.innerHTML = '<i data-lucide="loader-circle"></i> Scanning…';
+    if(window.lucide) lucide.createIcons();
+
+    try{
+      const res = await fetch(`${API_BASE}/scan/url`, {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ url }),
+      });
+      const data = await res.json();
+      if(!res.ok) throw new Error(data.detail || 'Scan failed.');
+      renderScanResult(data);
+      loadScanHistory();
+    } catch(err){
+      urlScanError.textContent = err.message.includes('fetch')
+        ? `Couldn't reach the backend API at ${API_BASE} — make sure it's running (uvicorn api.main:app --reload --port 8000).`
+        : err.message;
+    } finally {
+      scanBtn.disabled = false;
+      scanBtn.classList.remove('loading');
+      scanBtn.innerHTML = '<i data-lucide="scan-search"></i> Scan This Website';
+      if(window.lucide) lucide.createIcons();
+    }
+  });
+
+  loadScanHistory();
+})();

@@ -20,7 +20,7 @@ from api.schemas.schemas import DataSourceOut, UploadAlertPreview, UploadAnalysi
 
 router = APIRouter(prefix="/upload", tags=["upload"])
 
-MAX_UPLOAD_MB = 300  # CICIDS2017's individual day-files can run 70-300MB, so 50MB was too small for real usage
+MAX_UPLOAD_MB = 50
 
 
 @router.post("/dataset", response_model=UploadAnalysisOut)

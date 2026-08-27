@@ -144,4 +144,28 @@ class DataSourceOut(BaseModel):
         from_attributes = True
 
 
+class URLScanFlag(BaseModel):
+    signal: str
+    detail: str
+    weight: float
+
+
+class URLScanIn(BaseModel):
+    url: str
+
+
+class URLScanOut(BaseModel):
+    id: int
+    url: str
+    risk_score: float
+    severity: str
+    reachable: bool
+    flags: list[URLScanFlag]
+    error: Optional[str] = None
+    scanned_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
 

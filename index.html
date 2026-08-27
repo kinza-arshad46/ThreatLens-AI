@@ -387,30 +387,54 @@
       <div class="panel">
         <div class="panel-head"><h3><i data-lucide="upload-cloud"></i> New Analysis</h3></div>
 
-        <div class="upload-form">
-          <div class="upload-field">
-            <label for="uploadSourceName">Source / company name</label>
-            <input type="text" id="uploadSourceName" placeholder="e.g. Acme Corp — firewall export">
+        <div class="upload-tabs">
+          <button class="upload-tab active" id="tabFileBtn" data-tab="file"><i data-lucide="file-up"></i> Upload File</button>
+          <button class="upload-tab" id="tabUrlBtn" data-tab="url"><i data-lucide="link"></i> Scan Website</button>
+        </div>
+
+        <div class="upload-tab-panel" id="tabPanelFile">
+          <div class="upload-form">
+            <div class="upload-field">
+              <label for="uploadSourceName">Source / company name</label>
+              <input type="text" id="uploadSourceName" placeholder="e.g. Acme Corp — firewall export">
+            </div>
+
+            <label class="dropzone" id="dropzone" for="fileInput">
+              <input type="file" id="fileInput" accept=".csv" hidden>
+              <div class="dz-icon"><i data-lucide="file-up"></i></div>
+              <p class="dz-title">Drag &amp; drop a CSV file here</p>
+              <p class="dz-or">or</p>
+              <span class="dz-browse-btn"><i data-lucide="folder-open"></i> Browse Files</span>
+              <p class="dz-sub">Any schema works — the analyzer auto-detects numeric traffic/log features. Max 300MB.</p>
+              <p class="dz-filename" id="dzFilename"></p>
+            </label>
+            <p class="upload-hint">
+              <i data-lucide="info"></i>
+              Expected columns (flexible naming accepted): flow duration, packet counts, byte/packet rates, source &amp; destination IP. Any missing column is automatically filled in — nearly any network or security log export will work.
+            </p>
+
+            <button class="mini-btn analyze-btn" id="analyzeBtn" disabled>
+              <i data-lucide="scan-search"></i> Analyze This File
+            </button>
+            <p class="upload-error" id="uploadError"></p>
           </div>
+        </div>
 
-          <label class="dropzone" id="dropzone" for="fileInput">
-            <input type="file" id="fileInput" accept=".csv" hidden>
-            <div class="dz-icon"><i data-lucide="file-up"></i></div>
-            <p class="dz-title">Drag &amp; drop a CSV file here</p>
-            <p class="dz-or">or</p>
-            <span class="dz-browse-btn"><i data-lucide="folder-open"></i> Browse Files</span>
-            <p class="dz-sub">Any schema works — the analyzer auto-detects numeric traffic/log features. Max 50MB.</p>
-            <p class="dz-filename" id="dzFilename"></p>
-          </label>
-          <p class="upload-hint">
-            <i data-lucide="info"></i>
-            Expected columns (flexible naming accepted): flow duration, packet counts, byte/packet rates, source &amp; destination IP. Any missing column is automatically filled in — nearly any network or security log export will work.
-          </p>
-
-          <button class="mini-btn analyze-btn" id="analyzeBtn" disabled>
-            <i data-lucide="scan-search"></i> Analyze This File
-          </button>
-          <p class="upload-error" id="uploadError"></p>
+        <div class="upload-tab-panel" id="tabPanelUrl" style="display:none;">
+          <div class="upload-form">
+            <div class="upload-field">
+              <label for="urlInput">Website link</label>
+              <input type="text" id="urlInput" placeholder="e.g. https://example.com or a suspicious link you received">
+            </div>
+            <p class="upload-hint">
+              <i data-lucide="info"></i>
+              Checks URL structure, HTTPS/certificate status, redirect chain, security headers, and (best-effort) domain age. This is a separate heuristic scanner from the dataset analyzer above — a URL isn't network-flow data, so it can't run through the same trained models.
+            </p>
+            <button class="mini-btn analyze-btn" id="scanUrlBtn">
+              <i data-lucide="scan-search"></i> Scan This Website
+            </button>
+            <p class="upload-error" id="urlScanError"></p>
+          </div>
         </div>
       </div>
 
@@ -431,11 +455,26 @@
         </div>
       </div>
 
+      <div class="panel" id="urlScanResultsPanel" style="display:none;">
+        <div class="panel-head"><h3><i data-lucide="shield-question"></i> Website Scan Result</h3><span class="tag" id="urlScanUrlTag"></span></div>
+        <div class="kpi-row" id="urlScanKpis"></div>
+        <div class="panel-head sub-head"><h3><i data-lucide="flag"></i> Flagged Signals</h3></div>
+        <ul class="flag-list" id="urlScanFlagList"></ul>
+      </div>
+
       <div class="panel">
         <div class="panel-head"><h3><i data-lucide="history"></i> Your Datasets</h3></div>
         <table class="feed-table">
           <thead><tr><th>ID</th><th>Source</th><th>Filename</th><th>Rows</th><th>Status</th><th>Uploaded At</th></tr></thead>
           <tbody id="uploadHistoryBody"><tr><td colspan="6" class="dd-empty">No uploads yet — analyze a file above to see it here.</td></tr></tbody>
+        </table>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head"><h3><i data-lucide="history"></i> Recent Website Scans</h3></div>
+        <table class="feed-table">
+          <thead><tr><th>ID</th><th>URL</th><th>Risk Score</th><th>Severity</th><th>Reachable</th><th>Scanned At</th></tr></thead>
+          <tbody id="urlScanHistoryBody"><tr><td colspan="6" class="dd-empty">No scans yet — scan a website above to see it here.</td></tr></tbody>
         </table>
       </div>
     </section>

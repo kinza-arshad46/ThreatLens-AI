@@ -17,7 +17,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from src.database.session import init_db
-from api.routes import analyst, analytics, events, forecast, graph, health, threats, upload, users
+from api.routes import analyst, analytics, events, forecast, graph, health, threats, upload, url_scan, users
 
 
 @asynccontextmanager
@@ -53,6 +53,7 @@ app.include_router(graph.router)
 app.include_router(analyst.router)
 app.include_router(analytics.router)
 app.include_router(upload.router)
+app.include_router(url_scan.router)
 
 
 @app.get("/")

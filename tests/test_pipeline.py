@@ -138,3 +138,43 @@ def test_align_features_to_model_coerces_non_numeric_to_zero():
     upload_df = pd.DataFrame({"flow_duration": ["not_a_number", "200"]})
     aligned = align_features_to_model(upload_df, ["flow_duration"])
     assert list(aligned["flow_duration"]) == [0.0, 200.0]
+
+
+# ---------------------------------------------------------------------
+# Tests for the website/URL scanner (src/models/url_scanner.py)
+# ---------------------------------------------------------------------
+
+from src.models.url_scanner import _check_url_structure
+from urllib.parse import urlparse
+
+
+def test_url_structure_flags_ip_hostname():
+    url = "http://192.168.1.1/login"
+    flags = _check_url_structure(url, urlparse(url))
+    signals = [f["signal"] for f in flags]
+    assert "ip_as_hostname" in signals
+    assert "no_https" in signals
+
+
+def test_url_structure_flags_at_symbol_and_keywords():
+    url = "http://user@paypal-secure-login.com/verify"
+    flags = _check_url_structure(url, urlparse(url))
+    signals = [f["signal"] for f in flags]
+    assert "at_symbol" in signals
+    assert "suspicious_keywords" in signals
+
+
+def test_url_structure_clean_url_has_minimal_flags():
+    url = "https://github.com/"
+    flags = _check_url_structure(url, urlparse(url))
+    signals = [f["signal"] for f in flags]
+    assert "no_https" not in signals
+    assert "ip_as_hostname" not in signals
+    assert "at_symbol" not in signals
+
+
+def test_url_structure_detects_known_shortener():
+    url = "https://bit.ly/abc123"
+    flags = _check_url_structure(url, urlparse(url))
+    signals = [f["signal"] for f in flags]
+    assert "url_shortener" in signals
